@@ -1,0 +1,21 @@
+// test1
+message test1 {
+    optional int32 test_1 = 1;
+    optional bool test_2 = 2;
+    optional string test_3 = 3;
+}
+
+enum test5 {
+    NUM = 1;
+    NUM2 = 2;
+}
+
+// test2
+message test2 {
+    repeated test1 test_1 = 1;
+    required bytes test_2 = 2;
+    repeated int64 test_3 = 3;
+    required test3 test_4 = 4;
+    repeated test4 test_5 = 5;
+    repeated test5 test_6 = 6;
+}
