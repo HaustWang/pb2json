@@ -150,6 +150,9 @@ bool Generator::AnalyseProtoFile(std::string const& proto_path) {
                     auto pos = ele.name.find("=");
                     if (std::string::npos != pos) ele.name = ele.name.substr(0, pos);
 
+                    ele.name.insert(1, 1, (char)tolower(ele.name[0]));
+                    ele.name.erase(0, 1);
+
                     message_map[message_name].push_back(ele);
                 }
             }
