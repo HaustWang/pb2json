@@ -60,6 +60,11 @@ public:
 			json["test_6"] += tmp_json;
 		}
 
+		for(auto ele : msg.test_3t()) {
+			nlohmann::json tmp_json = (int)ele;
+			json["Test_3T"] += tmp_json;
+		}
+
 
 		return json;
 	}
@@ -99,6 +104,17 @@ public:
 			for(auto i = 0; i < count; ++i) {
 				if(json["test_6"][i].is_number())
 					msg.add_test_6(json["test_6"][i].get<int>());
+			}
+		}
+
+		if (!json["Test_3T"].is_array()) {
+			if(json["Test_3T"].is_number())
+				msg.add_test_3t(json["Test_3T"].get<int>());
+		} else {
+			int count = json.count(Test_3T);
+			for(auto i = 0; i < count; ++i) {
+				if(json["Test_3T"][i].is_number())
+					msg.add_test_3t(json["Test_3T"][i].get<int>());
 			}
 		}
 

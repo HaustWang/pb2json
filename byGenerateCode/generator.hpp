@@ -26,6 +26,7 @@ protected:
         std::string label;
         std::string type;
         std::string name;
+        std::string method_name;
     };
 
     using message_type = std::vector<Element>;

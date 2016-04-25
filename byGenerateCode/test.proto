@@ -18,4 +18,5 @@ message test2 {
     required test3 test_4 = 4;
     repeated test4 test_5 = 5;
     repeated test5 test_6 = 6;
+    repeated test5 Test_3T = 7;
 }
