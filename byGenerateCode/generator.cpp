@@ -134,14 +134,15 @@ bool Generator::AnalyseProtoFile(std::string const& proto_path) {
                     message_name.clear();
                 } else {
                     std::istringstream iss(useful);
-                    std::cout<<iss.str()<<std::endl;
+                    std::cout << iss.str() << std::endl;
                     Element ele;
                     iss >> ele.label >> ele.type >> ele.name;
                     if (!isProtoOriginalType(ele.type)) {
                         if (std::find(enum_vec.begin(), enum_vec.end(), ele.type) == enum_vec.end() &&
                             message_map.find(ele.type) == message_map.end()) {
-                            err_string += "There is not a definition of message " + ele.type + " which is the type of element " +
-                                          ele.name + " in message " + message_name + "\n";
+                            err_string += "There is not a definition of message " + ele.type +
+                                          " which is the type of element " + ele.name + " in message " + message_name +
+                                          "\n";
                             continue;
                         }
                     }
@@ -257,17 +258,20 @@ std::string Generator::GenerateMessage2Json(std::string const& message_name, int
     for (auto& ele : msg) {
         if (isProtoOriginalType(ele.type)) {
             if (ele.label == "repeated") {
-                oss << tab_lable << "for(auto ele : msg." << ele.name << "()) {\n" << tab_lable
-                    << "\t\tnlohmann::json tmp_json = ele;\n" << tab_lable << "\t\tjson[\"" << ele.name
-                    << "\"] += tmp_json;\n\t\t}\n\n";
+                oss << tab_lable << "for(auto ele : msg." << ele.name << "()) {\n";
+                oss << tab_lable << "\tnlohmann::json tmp_json = ele;\n";
+                oss << tab_lable << "\tjson[\"" << ele.name << "\"] += tmp_json;\n";
+                oss << tab_lable << "}\n\n";
             } else {
                 oss << tab_lable << "json[\"" << ele.name << "\"] = msg." << ele.name << "();\n\n";
             }
         } else {
             if (std::find(enum_vec.begin(), enum_vec.end(), ele.type) != enum_vec.end()) {
                 if (ele.label == "repeated") {
-                    oss << tab_lable << "for(auto ele : msg." << ele.name << "())\n" << tab_lable << "\tjson[\""
-                        << ele.name << "\"] += (int)ele;\n\n";
+                    oss << tab_lable << "for(auto ele : msg." << ele.name << "()) {\n";
+                    oss << tab_lable << "\tnlohmann::json tmp_json = (int)ele;\n";
+                    oss << tab_lable << "\tjson[\"" << ele.name << "\"] += tmp_json;\n";
+                    oss << tab_lable << "}\n\n";
                 } else {
                     oss << tab_lable << "json[\"" << ele.name << "\"] = (int)msg." << ele.name << "();\n\n";
                 }
@@ -275,8 +279,8 @@ std::string Generator::GenerateMessage2Json(std::string const& message_name, int
                 std::ostringstream translator;
                 translator << (char)toupper(ele.type[0]) << ele.type.substr(1) << "Translator::ToJson";
                 if (ele.label == "repeated") {
-                    oss << tab_lable << "for(auto& ele : msg." << ele.name << "())\n" << tab_lable << "\tjson[\""
-                        << ele.name << "\"] += " << translator.str() << "(ele);\n\n";
+                    oss << tab_lable << "for(auto& ele : msg." << ele.name << "())\n";
+                    oss << tab_lable << "\tjson[\"" << ele.name << "\"] += " << translator.str() << "(ele);\n\n";
                 } else {
                     oss << tab_lable << "json[\"" << ele.name << "\"] = " << translator.str() << "(msg." << ele.name
                         << "());\n\n";
@@ -323,45 +327,61 @@ std::string Generator::GenerateJson2Message(std::string const& message_name, int
 
             // check is repetead
             if (ele.label == "repeated") {
-                oss << tab_lable << "if (!json[\"" << ele.name << "\"].is_array()) {\n" << tab_lable << "\tif(json[\""
-                    << ele.name << "\"]." << is_type << "())\tmsg.add_" << ele.name << "(json[\"" << ele.name
-                    << "\"].get<" << type << ">());\n" << tab_lable << "} else {\n" << tab_lable
-                    << "\tint count = json.count(" << ele.name << ");\n" << tab_lable
-                    << "\tfor(auto i = 0; i < count; ++i) {\n" << tab_lable << "\t\tif(json[\"" << ele.name << "\"][i]."
-                    << is_type << "())\tmsg.add_" << ele.name << "(json[\"" << ele.name << "\"][i].get<" << type
-                    << ">());\n" << tab_lable << "\t}\n" << tab_lable << "}\n\n";
+                oss << tab_lable << "if (!json[\"" << ele.name << "\"].is_array()) {\n";
+                oss << tab_lable << "\tif(json[\"" << ele.name << "\"]." << is_type << "())\n";
+                oss << tab_lable << "\t\tmsg.add_ " << ele.name << "(json[\"" << ele.name << "\"].get<" << type
+                    << ">());\n";
+                oss << tab_lable << "} else {\n";
+                oss << tab_lable << "\tint count = json.count(" << ele.name << ");\n";
+                oss << tab_lable << "\tfor(auto i = 0; i < count; ++i) {\n";
+                oss << tab_lable << "\t\tif(json[\"" << ele.name << "\"][i]." << is_type << "())\n";
+                oss << tab_lable << "\t\t\tmsg.add_" << ele.name << "(json[\"" << ele.name << "\"][i].get<" << type
+                    << ">());\n";
+                oss << tab_lable << "\t}\n";
+                oss << tab_lable << "}\n\n";
             } else {
-                oss << tab_lable << "if(json[\"" << ele.name << "\"]." << is_type << "())\tmsg.set_" << ele.name
-                    << "(json[\"" << ele.name << "\"].get<" << type << ">());\n\n";
+                oss << tab_lable << "if(json[\"" << ele.name << "\"]." << is_type << "())\n";
+                oss << tab_lable << "\tmsg.set_" << ele.name << "(json[\"" << ele.name << "\"].get<" << type
+                    << ">());\n\n";
             }
         } else {
             if (std::find(enum_vec.begin(), enum_vec.end(), ele.type) != enum_vec.end()) {
                 if (ele.label == "repeated") {
-                    oss << tab_lable << "if (!json[\"" << ele.name << "\"].is_array()) {\n" << tab_lable
-                        << "\tif(json[\"" << ele.name << "\"].is_number())\tmsg.add_" << ele.name << "(json[\""
-                        << ele.name << "\"].get<int>());\n" << tab_lable << "} else {\n" << tab_lable
-                        << "\tint count = json.count(" << ele.name << ");\n" << tab_lable
-                        << "\tfor(auto i = 0; i < count; ++i) {\n" << tab_lable << "\t\tif(json[\"" << ele.name
-                        << "\"][i].is_number())\tmsg.add_" << ele.name << "(json[\"" << ele.name
-                        << "\"][i].get<int>());\n" << tab_lable << "\t}\n" << tab_lable << "}\n\n";
+                    oss << tab_lable << "if (!json[\"" << ele.name << "\"].is_array()) {\n";
+                    oss << tab_lable << "\tif(json[\"" << ele.name << "\"].is_number())\n";
+                    oss << tab_lable << "\t\tmsg.add_" << ele.name << "(json[\"" << ele.name << "\"].get<int>());\n";
+                    oss << tab_lable << "} else {\n";
+                    oss << tab_lable << "\tint count = json.count(" << ele.name << ");\n";
+                    oss << tab_lable << "\tfor(auto i = 0; i < count; ++i) {\n";
+                    oss << tab_lable << "\t\tif(json[\"" << ele.name << "\"][i].is_number())\n";
+                    oss << tab_lable << "\t\t\tmsg.add_" << ele.name << "(json[\"" << ele.name
+                        << "\"][i].get<int>());\n";
+                    oss << tab_lable << "\t}\n";
+                    oss << tab_lable << "}\n\n";
                 } else {
-                    oss << tab_lable << "if(json[\"" << ele.name << "\"].is_number())\tmsg.set_" << ele.name
-                        << "(json[\"" << ele.name << "\"].get<int>());\n\n";
+                    oss << tab_lable << "if(json[\"" << ele.name << "\"].is_number())\n";
+                    oss << tab_lable << "\tmsg.set_" << ele.name << "(json[\"" << ele.name << "\"].get<int>());\n\n";
                 }
             } else {
                 std::ostringstream translator;
                 translator << (char)toupper(ele.type[0]) << ele.type.substr(1) << "Translator::ToMessage";
                 if (ele.label == "repeated") {
-                    oss << tab_lable << "if (!json[\"" << ele.name << "\"].is_array()) {\n" << tab_lable
-                        << "\tif(json[\"" << ele.name << "\"].is_object())\tmsg.add_" << ele.name << "()->CopyFrom("
-                        << translator.str() << "(json[\"" << ele.name << "\"]));\n" << tab_lable << "} else {\n"
-                        << tab_lable << "\tint count = json.count(" << ele.name << ");\n" << tab_lable
-                        << "\tfor(auto i = 0; i < count; ++i) {\n" << tab_lable << "\t\tif(json[\"" << ele.name
-                        << "\"][i].is_object())\tmsg.add_" << ele.name << "()->CopyFrom(" << translator.str()
-                        << "(json[\"" << ele.name << "\"][i]));\n" << tab_lable << "\t}\n" << tab_lable << "}\n\n";
+                    oss << tab_lable << "if (!json[\"" << ele.name << "\"].is_array()) {\n";
+                    oss << tab_lable << "\tif(json[\"" << ele.name << "\"].is_object())\n";
+                    oss << tab_lable << "\t\tmsg.add_" << ele.name << "()->CopyFrom(" << translator.str() << "(json[\""
+                        << ele.name << "\"]));\n";
+                    oss << tab_lable << "} else {\n";
+                    oss << tab_lable << "\tint count = json.count(" << ele.name << ");\n";
+                    oss << tab_lable << "\tfor(auto i = 0; i < count; ++i) {\n";
+                    oss << tab_lable << "\t\tif(json[\"" << ele.name << "\"][i].is_object())\n";
+                    oss << tab_lable << "\t\t\tmsg.add_" << ele.name << "()->CopyFrom(" << translator.str()
+                        << "(json[\"" << ele.name << "\"][i]));\n";
+                    oss << tab_lable << "\t}\n";
+                    oss << tab_lable << "}\n\n";
                 } else {
-                    oss << tab_lable << "if(json[\"" << ele.name << "\"].is_object())\tmsg.mutable_" << ele.name
-                        << "()->CopyFrom(" << translator.str() << "(json[\"" << ele.name << "\"]));\n\n";
+                    oss << tab_lable << "if(json[\"" << ele.name << "\"].is_object())\n";
+                    oss << tab_lable << "\tmsg.mutable_" << ele.name << "()->CopyFrom(" << translator.str()
+                        << "(json[\"" << ele.name << "\"]));\n\n";
                 }
             }
         }
