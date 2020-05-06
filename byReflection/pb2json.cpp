@@ -15,7 +15,8 @@ bool Pb2Json::Json2Message(const Json& json, ProtobufMsg& message, bool str2enum
     for (auto i = 0; i < count; ++i) {
         const auto field = descriptor->field(i);
         if (nullptr == field) continue;
-
+        if (json.end() == json.find(field->name())) continue;
+        
         auto& value = json[field->name()];
         if (value.is_null()) continue;
 
