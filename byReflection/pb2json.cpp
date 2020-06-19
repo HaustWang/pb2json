@@ -105,7 +105,7 @@ bool Pb2Json::Json2Message(const Json& json, ProtobufMsg& message, bool str2enum
 
 bool Pb2Json::Json2RepeatedMessage(const Json& json, ProtobufMsg& message, const ProtobufFieldDescriptor* field,
                                    const ProtobufReflection* reflection, bool str2enum) {
-    int count = json.count(field->name());
+    int count = json.size();
     for (auto j = 0; j < count; ++j) {
         switch (field->type()) {
             case ProtobufFieldDescriptor::TYPE_BOOL: {
